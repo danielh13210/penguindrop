@@ -29,7 +29,7 @@ def set_privacy():
     key=request.json.get("key","")
     if key == "":
         return json.dumps({"error": "Key is required"}), 400
-    if key!= localhost_key.decode():
+    if key!= localhost_key:
         return json.dumps({"error": "Invalid key"}), 401
     if type(new_mode := request.json.get("privacy_mode",privacy_mode))==bool:
         privacy_mode = new_mode
@@ -48,7 +48,7 @@ def send():
         return json.dumps({"error":"no filename"}),400
     active=True
     accepted=None
-    subprocess.Popen(["./confirmation.sh",filename,localhost_key.decode()])
+    subprocess.Popen(["./confirmation.sh",filename,localhost_key])
     return "{}",207
 
 @app.route("/status")
@@ -82,7 +82,7 @@ def confirm():
     key=request.json.get("key","")
     if key=="":
          return json.dumps({"error":"key required"}),400
-    if key!=localhost_key.decode():
+    if key!=localhost_key:
          return json.dumps({"error":"invalid key"}),401
     accept=request.json.get("accept",None)
     if type(accept)==bool:
@@ -118,6 +118,8 @@ def close():
     return status
 
 if __name__ == "__main__":
-    localhost_key=base64.b64encode(random.randbytes(256))
-    print(f"localhost key: {localhost_key.decode()}")
+    localhost_key=base64.b64encode(random.randbytes(256)).decode()
+    if os.path.isdir(os.environ["XDG_RUNTIME_DIR"]):
+        with open(os.path.join(os.environ["XDG_RUNTIME_DIR"],"penguindrop_key"),"w") as f:
+            f.write(localhost_key)
     app.run(host="0.0.0.0",port=6707)
