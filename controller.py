@@ -38,7 +38,7 @@ def set_privacy():
 
 @app.route("/startsend", methods=["PUT"])
 def send():
-    global active, accepted, filename
+    global active, accepted, filename, confirm_dialog_pid
     if privacy_mode:
         return json.dumps({"error":"Not accepting files"}),401
     if active:
@@ -48,7 +48,7 @@ def send():
         return json.dumps({"error":"no filename"}),400
     active=True
     accepted=None
-    subprocess.Popen(["./confirmation.sh",filename,localhost_key])
+    confirm_dialog_pid=subprocess.Popen(["./confirmation.sh",filename,localhost_key]).pid
     return "{}",207
 
 @app.route("/status")
@@ -78,7 +78,7 @@ def status():
         return json.dumps({"status":"waiting"})
 @app.route("/confirm",methods=["POST"])
 def confirm():
-    global accepted,active,ready,docker_launcher
+    global accepted,active,ready,docker_launcher, confirm_dialog_pid
     key=request.json.get("key","")
     if key=="":
          return json.dumps({"error":"key required"}),400
@@ -87,6 +87,7 @@ def confirm():
     accept=request.json.get("accept",None)
     if type(accept)==bool:
         accepted=accept
+        confirm_dialog_pid=None
         if accept:
             try:
                 ready=False
@@ -105,6 +106,10 @@ def close():
     global active
     if not active:
         return json.dumps({"error":"no active transfer"}),400
+    if accepted is None:
+        active=False
+        if confirm_dialog_pid: os.system(f"kill {confirm_dialog_pid}")
+        return json.dumps({"status":"cancelled"})
     status=None
     if os.system(f"docker cp {docker_id}:/home/ubuntu/{filename} \"{generate_name(filename)}\"")!=0:
         active=False
