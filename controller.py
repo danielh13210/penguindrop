@@ -103,6 +103,8 @@ def confirm():
 @app.route("/close", methods=["POST"])
 def close():
     global active
+    if not active:
+        return json.dumps({"error":"no active transfer"}),400
     status=None
     if os.system(f"docker cp {docker_id}:/home/ubuntu/{filename} \"{generate_name(filename)}\"")!=0:
         active=False
