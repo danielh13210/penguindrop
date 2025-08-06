@@ -97,7 +97,7 @@ def confirm():
                 active=False
                 return json.dumps({"error":"failed to start docker"}),500
         else:
-            return json.dumps({"status":False}),200
+            return json.dumps({"status":"declined"}),200
     else:
         return json.dumps({"error":"accept must be boolean"}),400
 
