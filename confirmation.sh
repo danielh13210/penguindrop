@@ -2,9 +2,10 @@
 
 filename="${1}"
 key="${2}"
+name="${3}"
 KILLED=false
 
-zenity --question --title="File Sharing" --text="Would you like to recieve the file ${filename}" &
+zenity --question --title="File Sharing" --text="Would you like to recieve the file ${filename} from ${name}?" &
 ZPID=$!
 trap "kill $ZPID;KILLED=true" INT TERM
 wait $ZPID

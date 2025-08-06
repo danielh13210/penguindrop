@@ -23,7 +23,7 @@ function cancel () {
 trap 'echo' EXIT
 
 echo -en "\rWaiting"
-STATUS=$(curl -s -X PUT -d "{\"filename\":\"${FILENAME}\"}" "http://${TARGET}:6707/startsend" -H "Content-Type: application/json")
+STATUS=$(curl -s -X PUT -d "{\"filename\":\"${FILENAME}\",\"name\":\"$(hostname)\"}" "http://${TARGET}:6707/startsend" -H "Content-Type: application/json")
 if [ "$?" -ne 0 ]; then
     echo -en "\rFailed"
     exit 1

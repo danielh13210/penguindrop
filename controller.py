@@ -19,6 +19,11 @@ def generate_name(filename):
         path=os.path.join(os.path.expanduser("~"),"Downloads",f"{basename} {num}{ext}")
     return path
 
+@app.route("/name")
+def get_name():
+    hostname=subprocess.check_output("hostname").decode().strip()
+    return json.dumps({"name":hostname})
+
 @app.route("/privacy")
 def is_privacy_mode():
     return json.dumps({"privacy_mode": privacy_mode})
@@ -43,12 +48,15 @@ def send():
         return json.dumps({"error":"Not accepting files"}),401
     if active:
         return json.dumps({"error":"Another host is sending"}),503
+    name=request.json.get("name","")
+    if name=="":
+        return json.dumps({"error":"name required"}),400
     filename=request.json.get("filename","")
     if filename=="":
         return json.dumps({"error":"no filename"}),400
     active=True
     accepted=None
-    confirm_dialog_pid=subprocess.Popen(["./confirmation.sh",filename,localhost_key]).pid
+    confirm_dialog_pid=subprocess.Popen(["./confirmation.sh",filename,localhost_key,name]).pid
     return "{}",207
 
 @app.route("/status")
