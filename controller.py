@@ -84,6 +84,15 @@ def status():
         return json.dumps({"status":"accepted"})
     if accepted is None:
         return json.dumps({"status":"waiting"})
+@app.route("/pubkey",methods=["PUT"])
+def set_pubkey():
+    key=request.json.get("key","")
+    with open('/tmp/penguindrop-key.pub','w') as keyfile:
+        keyfile.write(key)
+    if os.system(f"docker cp /tmp/penguindrop-key.pub {docker_id}:/home/ubuntu/.ssh/authorized_keys")==0:
+        return "{}",204
+    else:
+        return json.dumps({"error":"failed to copy key"}),500
 @app.route("/confirm",methods=["POST"])
 def confirm():
     global accepted,active,ready,docker_launcher, confirm_dialog_pid
