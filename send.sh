@@ -73,7 +73,16 @@ echo -en "\rSending"
 [ -f /tmp/penguindrop-key ] && rm /tmp/penguindrop-key
 [ -f /tmp/penguindrop-key.pub ] && rm /tmp/penguindrop-key.pub
 ssh-keygen -t rsa -b 2048 -f /tmp/penguindrop-key -N "" >/dev/null 2>/dev/null
-curl -X PUT -d '{"key":"'"$(cat /tmp/penguindrop-key.pub)"'"}' "http://${TARGET}:6707/pubkey" -H "Content-Type: application/json"
+STATUS=$(curl -s -X PUT -d '{"key":"'"$(cat /tmp/penguindrop-key.pub)"'"}' "http://${TARGET}:6707/pubkey" -H "Content-Type: application/json")
+if [ "$?" -ne 0 ]; then
+    echo -en "\rFailed"
+    exit 1
+fi
+if echo "$STATUS" | grep "^{\"error\"" &>/dev/null; then
+    echo -en "\rFailed"
+    echo "Error: $(python3 -c "import json; print(json.loads('${STATUS}')['error'])")" >&2
+    exit 1
+fi
 scp -i /tmp/penguindrop-key -P 6708 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${FILEPATH}" "ubuntu@${TARGET}:/home/ubuntu/${FILENAME}"
 if [ "$?" -ne 0 ]; then
     echo -en "\rFailed"
