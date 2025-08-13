@@ -120,7 +120,7 @@ def confirm():
 
 @app.route("/close", methods=["POST"])
 def close():
-    global active
+    global active, docker_id
     if not active:
         return json.dumps({"error":"no active transfer"}),400
     if accepted is None:
@@ -138,7 +138,9 @@ def close():
         active=False
         if not status: status=json.dumps({"status":"partialfail","error":"docker rm failed"}),500
     active=False
-    if not status: status=json.dumps({"status":"done"})
+    if not status: 
+        status=json.dumps({"status":"done"})
+        docker_id=None
     return status
 
 if __name__ == "__main__":
