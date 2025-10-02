@@ -139,9 +139,9 @@ def close():
         active=False
         if not status: status=json.dumps({"status":"partialfail","error":"docker rm failed"}),500
     active=False
+    docker_id=None
     if not status: 
         status=json.dumps({"status":"done"})
-        docker_id=None
     return status
 
 if __name__ == "__main__":
