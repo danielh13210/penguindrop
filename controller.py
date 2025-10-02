@@ -90,6 +90,7 @@ def set_pubkey():
     with open('/tmp/penguindrop-key.pub','w') as keyfile:
         keyfile.write(key)
     if os.system(f"docker cp /tmp/penguindrop-key.pub {docker_id}:/home/ubuntu/.ssh/authorized_keys")==0:
+        os.system(f"docker exec {docker_id} sh -c \"chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys && chmod 600 /home/ubuntu/.ssh/authorized_keys\"")
         return "{}",204
     else:
         return json.dumps({"error":"failed to copy key"}),500
