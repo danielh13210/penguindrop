@@ -87,7 +87,7 @@ if echo "$STATUS" | grep "^{\"error\"" &>/dev/null; then
     echo "Error: $(python3 -c "import json; print(json.loads('${STATUS}')['error'])")" >&2
     exit 1
 fi
-scp -i /tmp/penguindrop-key -P 6708 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${FILEPATH}" "ubuntu@${TARGET}:/home/ubuntu/${FILENAME}"
+scp -r -i /tmp/penguindrop-key -P 6708 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${FILEPATH}" "ubuntu@${TARGET}:/home/ubuntu/${FILENAME}"
 if [ "$?" -ne 0 ]; then
     echo -en "\rFailed"
 else
