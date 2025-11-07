@@ -2,6 +2,10 @@
 
 TARGET="${1}"
 FILEPATH="${2}"
+if "$(dirname ${BASH_SOURCE[0]})/wsl-helpers/is_wsl.sh" && [ "${FILEPATH:0:1}" != "/" ]; then
+  FILEPATH=$(echo "${FILEPATH}" | tr '\\' '/')
+  FILEPATH=$(wslpath "${FILEPATH}")
+fi
 FILENAME=$(basename "${FILEPATH}")
 
 function cancel () {
