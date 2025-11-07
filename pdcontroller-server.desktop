@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=Penguindrop Server
+Exec=bash ~/.local/share/penguindrop/daemon.sh
+TryExec=/usr/bin/python3
