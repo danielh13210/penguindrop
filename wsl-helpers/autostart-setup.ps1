@@ -10,4 +10,5 @@ $shortcut = $WshShell.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = $targetPath
 $shortcut.Arguments = $arguments
 $shortcut.WorkingDirectory = "$env:USERPROFILE"
+$shortcut.WindowStyle = 7 #minimized window
 $shortcut.Save()
