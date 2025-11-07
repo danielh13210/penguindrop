@@ -9,9 +9,13 @@ active=False
 ready=False
 accepted=None
 docker_id=None
+wsl_mode=False
 
 def generate_name(filename):
-    path=os.path.join(os.path.expanduser("~"),"Downloads",filename)
+    if wsl_mode:
+        path=os.path.join(subprocess.check_output("wslpath $(powershell.exe -Command 'Write-Host $env:USERPROFILE\\Downloads')",shell=True,text=True).strip(),filename)
+    else:
+        path=os.path.join(os.path.expanduser("~"),"Downloads",filename)
     basename, ext = os.path.splitext(filename)
     num=1
     while os.path.exists(path):
@@ -95,7 +99,7 @@ def set_pubkey():
     else:
         return json.dumps({"error":"failed to copy key"}),500
 @app.route("/confirm",methods=["POST"])
-def confirm():
+def confirm(request=request):
     global accepted,active,ready,docker_launcher, confirm_dialog_pid
     key=request.json.get("key","")
     if key=="":
@@ -119,6 +123,14 @@ def confirm():
     else:
         return json.dumps({"error":"accept must be boolean"}),400
 
+class Bridge:
+  def __init__(self,data):
+      self.json=data
+
+@app.route("/confirm.html")
+def confirm_bridge():
+  return confirm(Bridge({"key":request.args.get("key",""),"accept":json.loads(request.args.get("accepted","false"))}))
+
 @app.route("/close", methods=["POST"])
 def close():
     global active, docker_id
@@ -129,7 +141,7 @@ def close():
         if confirm_dialog_pid: os.system(f"kill {confirm_dialog_pid}")
         return json.dumps({"status":"cancelled"})
     status=None
-    os.makedirs(os.path.expanduser("~/Downloads"))
+    if not wsl_mode: os.makedirs(os.path.expanduser("~/Downloads"))
     if os.system(f"docker cp {docker_id}:/home/ubuntu/{filename} \"{generate_name(filename)}\"")!=0:
         active=False
         if not status: status=json.dumps({"status":"failed","error":"file save failed"}),500
@@ -146,6 +158,8 @@ def close():
     return status
 
 if __name__ == "__main__":
+    if os.system(os.path.join(os.path.dirname(__file__),"wsl-helpers","is_wsl.sh"))==0:
+      wsl_mode=True
     localhost_key=base64.b64encode(random.randbytes(256)).decode()
     if os.path.isdir(os.environ["XDG_RUNTIME_DIR"]):
         with open(os.path.join(os.environ["XDG_RUNTIME_DIR"],"penguindrop_key"),"w") as f:
