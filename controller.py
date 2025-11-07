@@ -129,6 +129,7 @@ def close():
         if confirm_dialog_pid: os.system(f"kill {confirm_dialog_pid}")
         return json.dumps({"status":"cancelled"})
     status=None
+    os.makedirs(os.path.expanduser("~/Downloads"))
     if os.system(f"docker cp {docker_id}:/home/ubuntu/{filename} \"{generate_name(filename)}\"")!=0:
         active=False
         if not status: status=json.dumps({"status":"failed","error":"file save failed"}),500
