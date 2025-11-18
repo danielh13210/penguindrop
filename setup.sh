@@ -15,6 +15,7 @@ grep -v "penguindrop-controller" .gitignore > "$XDG_RUNTIME_DIR/pdsetup-rsync-ex
 rsync -av --exclude-from="$XDG_RUNTIME_DIR/pdsetup-rsync-exclude" --exclude ".git" --exclude ".gitignore" . ~/.local/share/penguindrop
 if ./wsl-helpers/is_wsl.sh; then
   powershell.exe -ExecutionPolicy Bypass -File ./wsl-helpers/autostart-setup.ps1 "$HOME/.local/share/penguindrop/daemon.sh"
+  sed -i 's/{{DISTRO_NAME}}/'"${WSL_DISTRO_NAME}"'/g' ~/.local/share/penguindrop/wsl-helpers/netsh-setup.ps1
 else
   cp pdcontroller-server.desktop ~/.config/autostart
 fi
