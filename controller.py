@@ -91,9 +91,10 @@ def status():
 @app.route("/pubkey",methods=["PUT"])
 def set_pubkey():
     key=request.json.get("key","")
-    with open('/tmp/penguindrop-key.pub','w') as keyfile:
+    keypath=os.path.join(os.environ["XDG_RUNTIME_DIR"],'penguindrop-key.receive.pub')
+    with open(keypath,'w') as keyfile:
         keyfile.write(key)
-    if os.system(f"docker cp /tmp/penguindrop-key.pub {docker_id}:/home/ubuntu/.ssh/authorized_keys")==0:
+    if os.system(f"docker cp {keypath} {docker_id}:/home/ubuntu/.ssh/authorized_keys")==0:
         os.system(f"docker exec {docker_id} sh -c \"chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys && chmod 600 /home/ubuntu/.ssh/authorized_keys\"")
         return "{}",204
     else:
