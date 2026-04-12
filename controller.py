@@ -158,11 +158,9 @@ def close():
         status=json.dumps({"status":"done"})
     return status
 
-if __name__ == "__main__":
-    if os.system(os.path.join(os.path.dirname(__file__),"wsl-helpers","is_wsl.sh"))==0:
-      wsl_mode=True
-    localhost_key=base64.b64encode(random.randbytes(256)).decode()
-    if os.path.isdir(os.environ["XDG_RUNTIME_DIR"]):
-        with open(os.path.join(os.environ["XDG_RUNTIME_DIR"],"penguindrop_key"),"w") as f:
-            f.write(localhost_key)
-    app.run(host="0.0.0.0",port=6707)
+if os.system(os.path.join(os.path.dirname(__file__),"wsl-helpers","is_wsl.sh"))==0:
+    wsl_mode=True
+localhost_key=base64.b64encode(random.randbytes(256)).decode()
+if os.path.isdir(os.environ["XDG_RUNTIME_DIR"]):
+    with open(os.path.join(os.environ["XDG_RUNTIME_DIR"],"penguindrop_key"),"w") as f:
+        f.write(localhost_key)
