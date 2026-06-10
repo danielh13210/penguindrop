@@ -2,6 +2,8 @@
 cd "$(dirname "${BASH_SOURCE[0]}")"
 source penguindrop-controller/bin/activate
 export PORT=$1
+avahi-publish -s "penguindrop.$USER" --subtype=_penguindrop._sub._http._tcp _http._tcp $PORT &
+AVAHI_PID=$!
 if ./wsl-helpers/is_wsl.sh; then
     appdata=$(cmd.exe /c echo %APPDATA% 2>/dev/null | tr -d '\r')
     ssh.exe -i "$appdata\.config\pd-ssh-tunnel\forwarding" -NT -L 0.0.0.0:6707:localhost:6709 $USER@localhost &
@@ -9,3 +11,4 @@ if ./wsl-helpers/is_wsl.sh; then
 else
     gunicorn -w 1 -b 0.0.0.0:$PORT controller:app # native linux, bind to all interfaces so it can be accessed from other machines on the network
 fi
+kill $AVAHI_PID
