@@ -9,7 +9,7 @@ fi
 FILENAME=$(basename "${FILEPATH}")
 
 function cancel () {
-    STATUS=$(curl -s -X POST "http://${TARGET}:6707/close")
+    STATUS=$(curl -s -X POST "http://${TARGET}/close")
     if [ "$?" -ne 0 ]; then
         echo -en "\rFailed"
         exit 1
@@ -27,7 +27,7 @@ function cancel () {
 trap 'echo' EXIT
 
 echo -en "\rWaiting"
-STATUS=$(curl -s -X PUT -d "{\"filename\":\"${FILENAME}\",\"name\":\"$(hostname)\"}" "http://${TARGET}:6707/startsend" -H "Content-Type: application/json")
+STATUS=$(curl -s -X PUT -d "{\"filename\":\"${FILENAME}\",\"name\":\"$(hostname)\"}" "http://${TARGET}/startsend" -H "Content-Type: application/json")
 if [ "$?" -ne 0 ]; then
     echo -en "\rFailed"
     exit 1
@@ -44,7 +44,7 @@ trap cancel INT
 FAILURES=0
 while true; do
     FAIL=false
-    STATUS_JSON=$(curl -s -X GET "http://${TARGET}:6707/status")
+    STATUS_JSON=$(curl -s -X GET "http://${TARGET}/status")
     if [ "$?" -ne 0 ]; then
         FAIL=true
     else
@@ -77,7 +77,7 @@ echo -en "\rSending"
 [ -f "$XDG_RUNTIME_DIR/penguindrop-key.send" ] && rm "$XDG_RUNTIME_DIR/penguindrop-key.send"
 [ -f "$XDG_RUNTIME_DIR/penguindrop-key.send.pub" ] && rm "$XDG_RUNTIME_DIR/penguindrop-key.send.pub"
 ssh-keygen -t rsa -b 2048 -f "$XDG_RUNTIME_DIR/penguindrop-key.send" -N "" >/dev/null 2>/dev/null
-STATUS=$(curl -s -X PUT -d '{"key":"'"$(cat $XDG_RUNTIME_DIR/penguindrop-key.send.pub)"'"}' "http://${TARGET}:6707/pubkey" -H "Content-Type: application/json")
+STATUS=$(curl -s -X PUT -d '{"key":"'"$(cat $XDG_RUNTIME_DIR/penguindrop-key.send.pub)"'"}' "http://${TARGET}/pubkey" -H "Content-Type: application/json")
 if [ "$?" -ne 0 ]; then
     echo -en "\rFailed"
     exit 1
@@ -93,7 +93,7 @@ if [ "$?" -ne 0 ]; then
 else
     rm "$XDG_RUNTIME_DIR/penguindrop-key.send" "$XDG_RUNTIME_DIR/penguindrop-key.send.pub"
 fi
-STATUS=$(curl -s -X POST "http://${TARGET}:6707/close")
+STATUS=$(curl -s -X POST "http://${TARGET}/close")
 if [ "$?" -ne 0 ]; then
     echo -en "\rFailed"
     exit 1

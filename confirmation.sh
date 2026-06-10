@@ -3,12 +3,13 @@
 filename="${1}"
 key="${2}"
 name="${3}"
+PORT="${4}"
 KILLED=false
 
 app_path="$(dirname ${BASH_SOURCE[0]})"
 
 if "$app_path/wsl-helpers/is_wsl.sh"; then
-  exec powershell.exe -ExecutionPolicy Bypass -File "$(wslpath -w ${app_path}/wsl-helpers/confirmation.ps1)" "${filename}" "${key}" "${name}"
+  exec powershell.exe -ExecutionPolicy Bypass -File "$(wslpath -w ${app_path}/wsl-helpers/confirmation.ps1)" "${filename}" "${key}" "${name}" "${PORT}"
 fi
 
 mktemp 
@@ -22,7 +23,7 @@ if [ "$KILLED" = false ]; then
     else
         result=false
     fi
-    curl -H "Content-Type: application/json" -d '{"key":"'"${key}"'","accept":'"${result}"'}' "http://127.0.0.1:6707/confirm"
+    curl -H "Content-Type: application/json" -d '{"key":"'"${key}"'","accept":'"${result}"'}' "http://127.0.0.1:${PORT}/confirm"
 fi
 if [ -f /tmp/accepted ]; then
   rm /tmp/accepted

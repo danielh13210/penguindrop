@@ -1,6 +1,7 @@
 $FileName=$($args[0])
 $Key=$($args[1])
 $SourceComputerName=$($args[2])
+$Port=$($args[3])
 
 Import-Module BurntToast
 
@@ -15,8 +16,8 @@ $visual = New-BTVisual -BindingGeneric $binding
 $EncodedKey = [System.Web.HttpUtility]::UrlEncode($Key)
 
 # Create buttons
-$btn1 = New-BTButton -Content 'Accept' -Arguments "http://localhost:6707/confirm.html?key=$EncodedKey&accepted=true"
-$btn2 = New-BTButton -Content 'Decline' -Arguments "http://localhost:6707/confirm.html?key=$EncodedKey&accepted=false"
+$btn1 = New-BTButton -Content 'Accept' -Arguments "http://localhost:$Port/confirm.html?key=$EncodedKey&accepted=true"
+$btn2 = New-BTButton -Content 'Decline' -Arguments "http://localhost:$Port/confirm.html?key=$EncodedKey&accepted=false"
 
 
 # Wrap buttons in actions

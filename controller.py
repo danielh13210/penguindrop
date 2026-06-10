@@ -10,6 +10,7 @@ ready=False
 accepted=None
 docker_id=None
 wsl_mode=False
+port=os.environ['PORT']
 
 def generate_name(filename):
     if wsl_mode:
@@ -60,7 +61,7 @@ def send():
         return json.dumps({"error":"no filename"}),400
     active=True
     accepted=None
-    confirm_dialog_pid=subprocess.Popen(["./confirmation.sh",filename,localhost_key,name]).pid
+    confirm_dialog_pid=subprocess.Popen(["./confirmation.sh",filename,localhost_key,name,port]).pid
     return "{}",207
 
 @app.route("/status")
