@@ -27,7 +27,8 @@ def generate_name(filename):
 @app.route("/name")
 def get_name():
     hostname=subprocess.check_output("hostname").decode().strip()
-    return json.dumps({"name":hostname})
+    user=subprocess.check_output("whoami").decode().strip()
+    return json.dumps({"name":hostname+'/'+user})
 
 @app.route("/privacy")
 def is_privacy_mode():
