@@ -27,15 +27,15 @@ function cancel () {
 
 trap 'echo' EXIT
 
-echo -en "\rWaiting"
+echo -e "Waiting"
 STATUS=$(curl -s -X PUT -d "{\"filename\":\"${FILENAME}\",\"name\":\"$(hostname)\"}" "http://${TARGET}/startsend" -H "Content-Type: application/json")
 if [ "$?" -ne 0 ]; then
-    echo -en "\rFailed"
+    echo -e "Failed"
     exit 1
 fi
 ERRORS=$(echo "$STATUS" | grep "\"error\"")
 if [ "$?" -eq 0 ]; then 
-    echo -en "\rFailed"
+    echo -e "Failed"
     echo "Error: $(python3 -c "import json; print(json.loads('${ERRORS}')['error'])")" >&2
     exit 1
 fi
@@ -53,10 +53,10 @@ while true; do
         if [ "$STATUS" == "ready" ]; then
             break
         elif [ "$STATUS" == "declined" ]; then
-            echo -en "\rDeclined"
+            echo -e "Declined"
             exit 1
         elif [ "$STATUS" == "failed" ]; then
-            echo -en "\rFailed"
+            echo -e "Failed"
             exit 1
         fi
     fi
@@ -74,35 +74,35 @@ while true; do
     sleep 0.5
 done
 
-echo -en "\rSending"
+echo -e "Sending"
 [ -f "$XDG_RUNTIME_DIR/penguindrop-key.send" ] && rm "$XDG_RUNTIME_DIR/penguindrop-key.send"
 [ -f "$XDG_RUNTIME_DIR/penguindrop-key.send.pub" ] && rm "$XDG_RUNTIME_DIR/penguindrop-key.send.pub"
 ssh-keygen -t rsa -b 2048 -f "$XDG_RUNTIME_DIR/penguindrop-key.send" -N "" >/dev/null 2>/dev/null
 STATUS=$(curl -s -X PUT -d '{"key":"'"$(cat $XDG_RUNTIME_DIR/penguindrop-key.send.pub)"'"}' "http://${TARGET}/pubkey" -H "Content-Type: application/json")
 if [ "$?" -ne 0 ]; then
-    echo -en "\rFailed"
+    echo -e "Failed"
     exit 1
 fi
 if echo "$STATUS" | grep "^{\"error\"" &>/dev/null; then
-    echo -en "\rFailed"
+    echo -e "Failed"
     echo "Error: $(python3 -c "import json; print(json.loads('${STATUS}')['error'])")" >&2
     exit 1
 fi
 scp -r -i "$XDG_RUNTIME_DIR/penguindrop-key.send" -P "${SSHTARGET##*:}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${FILEPATH}" "ubuntu@${SSHTARGET%:*}:/home/ubuntu/${FILENAME}" 1>&2 # keep separate from main logging
 if [ "$?" -ne 0 ]; then
-    echo -en "\rFailed"
+    echo -e "Failed"
 else
     rm "$XDG_RUNTIME_DIR/penguindrop-key.send" "$XDG_RUNTIME_DIR/penguindrop-key.send.pub"
 fi
 STATUS=$(curl -s -X POST "http://${TARGET}/close")
 if [ "$?" -ne 0 ]; then
-    echo -en "\rFailed"
+    echo -e "Failed"
     exit 1
 fi
 ERRORS=$(echo "$STATUS" | grep "\"error\"")
 if [ "$?" -eq 0 ]; then
-    echo -en "\rFailed"
+    echo -e "Failed"
     echo "Error: $(python3 -c "import json; print(json.loads('${ERRORS}')['error'])")" >&2
     exit 1
 fi
-echo -en "\rComplete"
+echo -e "Complete"
