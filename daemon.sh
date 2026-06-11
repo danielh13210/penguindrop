@@ -2,7 +2,8 @@
 cd "$(dirname "${BASH_SOURCE[0]}")"
 source penguindrop-controller/bin/activate
 export PORT=$1
-avahi-publish -s "penguindrop.$USER" --subtype=_penguindrop._sub._http._tcp _http._tcp $PORT &
+export SSHPORT=$2
+avahi-publish -s "penguindrop.$USER" --subtype=_penguindrop._sub._http._tcp _http._tcp $PORT "sshport=$SSHPORT" &
 AVAHI_PID=$!
 if ./wsl-helpers/is_wsl.sh; then
     appdata=$(cmd.exe /c echo %APPDATA% 2>/dev/null | tr -d '\r')

@@ -13,5 +13,8 @@ for i in headers:
     continue
   port=discovery[i+3]
   port=port[port.index('[')+1:port.index(']')]
+  sshport=discovery[i+4]
+  sshport=sshport.split('=')[2]
+  sshport=sshport[:sshport.index('"')]
   name=requests.get('http://'+addr+':'+port+'/name').json()['name']
-  print(name,addr+':'+port)
+  print(name,addr+':'+port,addr+':'+sshport)

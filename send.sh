@@ -1,7 +1,8 @@
 #!/bin/bash
 
 TARGET="${1}"
-FILEPATH="${2}"
+SSHTARGET="${2}"
+FILEPATH="${3}"
 if "$(dirname ${BASH_SOURCE[0]})/wsl-helpers/is_wsl.sh" && [ "${FILEPATH:0:1}" != "/" ]; then
   FILEPATH=$(echo "${FILEPATH}" | tr '\\' '/')
   FILEPATH=$(wslpath "${FILEPATH}")
@@ -87,7 +88,7 @@ if echo "$STATUS" | grep "^{\"error\"" &>/dev/null; then
     echo "Error: $(python3 -c "import json; print(json.loads('${STATUS}')['error'])")" >&2
     exit 1
 fi
-scp -r -i "$XDG_RUNTIME_DIR/penguindrop-key.send" -P 6708 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${FILEPATH}" "ubuntu@${TARGET}:/home/ubuntu/${FILENAME}"
+scp -r -i "$XDG_RUNTIME_DIR/penguindrop-key.send" -P "${SSHTARGET##*:}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${FILEPATH}" "ubuntu@${SSHTARGET%:*}:/home/ubuntu/${FILENAME}"
 if [ "$?" -ne 0 ]; then
     echo -en "\rFailed"
 else
