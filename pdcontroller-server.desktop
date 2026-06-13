@@ -1,4 +1,6 @@
 [Desktop Entry]
+Type=Application
 Name=Penguindrop Server
-Exec=bash ~/.local/share/penguindrop/daemon.sh
+Exec=sh -c "bash ~/.local/share/penguindrop/daemon.sh {{port_http}} {{port_ssh}}"
 TryExec=/usr/bin/python3
+X-GNOME-Autostart-enabled=true

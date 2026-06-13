@@ -5,6 +5,7 @@ if [ ! -d penguindrop-controller ]; then
   source penguindrop-controller/bin/activate
   pip3 install -r requirements.txt
 fi
+source penguindrop-controller/bin/activate
 if ! docker image ls | grep "^penguindrop-acceptor" > /dev/null; then
   pushd penguindrop-acceptor
   docker build -t penguindrop-acceptor .
@@ -22,5 +23,6 @@ if ./wsl-helpers/is_wsl.sh; then
   cp ~/.config/pd-ssh-tunnel/forwarding $(wslpath "$appdata\.config\pd-ssh-tunnel/forwarding")
   echo 'command="",no-pty,permitopen="localhost:6709"'" $(cut -d ' ' -f-2 ~/.config/pd-ssh-tunnel/forwarding.pub) WSL tunneling key" >> ~/.ssh/authorized_keys
 else
-  cp pdcontroller-server.desktop ~/.config/autostart
+  python3 pdcontroller-server-generate-autostart.py > ~/.config/autostart/pdcontroller-server.desktop
+  chmod +x ~/.config/autostart/pdcontroller-server.desktop
 fi
