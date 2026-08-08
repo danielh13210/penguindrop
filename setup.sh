@@ -6,11 +6,7 @@ if [ ! -d penguindrop-controller ]; then
   pip3 install -r requirements.txt
 fi
 source penguindrop-controller/bin/activate
-if ! docker image ls | grep "^penguindrop-acceptor" > /dev/null; then
-  pushd penguindrop-acceptor
-  docker build -t penguindrop-acceptor .
-  popd
-fi
+docker pull danielh13210/penguindrop-acceptor:latest
 mkdir -p ~/.local/share/penguindrop ~/.config/autostart
 grep -v "penguindrop-controller" .gitignore > "$XDG_RUNTIME_DIR/pdsetup-rsync-exclude"
 rsync -av --exclude-from="$XDG_RUNTIME_DIR/pdsetup-rsync-exclude" --exclude ".git" --exclude ".gitignore" --exclude "requirements.txt" . ~/.local/share/penguindrop

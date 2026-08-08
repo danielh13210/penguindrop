@@ -117,7 +117,7 @@ def confirm(request=request):
             try:
                 ready=False
                 SSHPORT=os.environ['SSHPORT']
-                docker_launcher=subprocess.Popen(f"docker run -d -p {SSHPORT}:22 penguindrop-acceptor",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                docker_launcher=subprocess.Popen(f"docker run -d -p {SSHPORT}:22 danielh13210/penguindrop-acceptor",shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 return json.dumps({"status":"accepted"}),200
             except subprocess.CalledProcessError:
                 active=False
