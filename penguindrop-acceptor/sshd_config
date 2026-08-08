@@ -1,0 +1,11 @@
+Include /etc/ssh/sshd_config.d/*.conf
+KbdInteractiveAuthentication no
+UsePAM yes
+X11Forwarding no
+PrintMotd no
+AcceptEnv LANG LC_*
+AllowTcpForwarding no
+AllowStreamLocalForwarding no
+Subsystem	sftp	/usr/lib/openssh/sftp-serve
+PasswordAuthentication no
+ForceCommand internal-sftp
