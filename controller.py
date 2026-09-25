@@ -13,6 +13,7 @@ wsl_mode=False
 port=os.environ['PORT']
 
 def generate_name(filename):
+    filename=os.path.basename(filename)
     if wsl_mode:
         path=os.path.join(subprocess.check_output("wslpath $(powershell.exe -Command 'Write-Host $env:USERPROFILE\\Downloads')",shell=True,text=True).strip(),filename)
     else:
@@ -146,7 +147,7 @@ def close():
         return json.dumps({"status":"cancelled"})
     status=None
     if not wsl_mode: os.makedirs(os.path.expanduser("~/Downloads"),exist_ok=True)
-    if os.system(f"docker cp {docker_id}:/home/ubuntu/{filename} \"{generate_name(filename)}\"")!=0:
+    if subprocess.run(["docker","cp",f"{docker_id}:/home/ubuntu/{filename}",generate_name(filename)]).returncode!=0:
         active=False
         if not status: status=json.dumps({"status":"failed","error":"file save failed"}),500
     if os.system(f"docker stop {docker_id}")!=0:
