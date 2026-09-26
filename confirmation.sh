@@ -12,7 +12,6 @@ if "$app_path/wsl-helpers/is_wsl.sh"; then
   exec powershell.exe -ExecutionPolicy Bypass -File "$(wslpath -w ${app_path}/wsl-helpers/confirmation.ps1)" "${filename}" "${key}" "${name}" "${PORT}"
 fi
 
-mktemp 
 notify-send -i email -A "accept"=Accept -A "decline"=Decline -e "PenguinDrop: Accept file?" "Accept file ${filename} from ${name}?" >  /tmp/accepted &
 ZPID=$!
 trap "kill $ZPID;KILLED=true" INT TERM
