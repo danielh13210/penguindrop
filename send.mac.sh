@@ -1,0 +1,106 @@
+#!/bin/zsh
+
+TARGET="${1}"
+SSHTARGET="${2}"
+FILEPATH="${3}"
+FILENAME=$(basename "${FILEPATH}")
+
+XDG_RUNTIME_DIR=$(getconf DARWIN_USER_TEMP_DIR) # the macOS version of XDG_RUNTIME_DIR
+
+function cancel () {
+    STATUS=$(curl -s -X POST "http://${TARGET}/close")
+    if [ "$?" -ne 0 ]; then
+        echo -en "\rFailed"
+        exit 1
+    fi
+    ERRORS=$(echo "$STATUS" | grep "\"error\"")
+    if [ "$?" -eq 0 ]; then
+        echo -en "\rFailed"
+        echo "Error: $(python3 -c "import json; print(json.loads('${ERRORS}')['error'])")" >&2
+        exit 1
+    fi
+    echo -en "\rCancelled"
+    exit 0
+}
+
+trap 'echo' EXIT
+
+echo -e "Waiting"
+STATUS=$(curl -s -X PUT -d "{\"filename\":\"${FILENAME}\",\"name\":\"$(hostname)\"}" "http://${TARGET}/startsend" -H "Content-Type: application/json")
+if [ "$?" -ne 0 ]; then
+    echo -e "Failed"
+    exit 1
+fi
+ERRORS=$(echo "$STATUS" | grep "\"error\"")
+if [ "$?" -eq 0 ]; then 
+    echo -e "Failed"
+    echo "Error: $(python3 -c "import json; print(json.loads('${ERRORS}')['error'])")" >&2
+    exit 1
+fi
+
+#wait until accept or decline
+trap cancel INT
+FAILURES=0
+while true; do
+    FAIL=false
+    STATUS_JSON=$(curl -s -X GET "http://${TARGET}/status")
+    if [ "$?" -ne 0 ]; then
+        FAIL=true
+    else
+        STATUS=$(echo "$STATUS_JSON" | python3 -c "import json, sys; print(json.loads(sys.stdin.read())['status'])")
+        if [ "$STATUS" = "ready" ]; then
+            break
+        elif [ "$STATUS" = "declined" ]; then
+            echo -e "Declined"
+            exit 1
+        elif [ "$STATUS" = "failed" ]; then
+            echo -e "Failed"
+            exit 1
+        fi
+    fi
+
+    if $FAIL; then
+        ((FAILURES++))
+        if [ $FAILURES -ge 5 ]; then
+            echo "Failed to check status too many times. Exiting." >&2
+            exit 1
+        fi
+        sleep 0.5
+        continue
+    fi
+
+    sleep 0.5
+done
+
+echo -e "Sending"
+[ -f "$XDG_RUNTIME_DIR/penguindrop-key.send" ] && rm "$XDG_RUNTIME_DIR/penguindrop-key.send"
+[ -f "$XDG_RUNTIME_DIR/penguindrop-key.send.pub" ] && rm "$XDG_RUNTIME_DIR/penguindrop-key.send.pub"
+ssh-keygen -t rsa -b 2048 -f "$XDG_RUNTIME_DIR/penguindrop-key.send" -N "" >/dev/null 2>/dev/null
+STATUS=$(curl -s -X PUT -d '{"key":"'"$(cat $XDG_RUNTIME_DIR/penguindrop-key.send.pub)"'"}' "http://${TARGET}/pubkey" -H "Content-Type: application/json")
+if [ "$?" -ne 0 ]; then
+    echo -e "Failed"
+    exit 1
+fi
+if echo "$STATUS" | grep "^{\"error\"" &>/dev/null; then
+    echo -e "Failed"
+    echo "Error: $(python3 -c "import json; print(json.loads('${STATUS}')['error'])")" >&2
+    exit 1
+fi
+scp -r -i "$XDG_RUNTIME_DIR/penguindrop-key.send" -P "${SSHTARGET##*:}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${FILEPATH}" "ubuntu@${SSHTARGET%:*}:/home/ubuntu/${FILENAME}" 1>&2 # keep separate from main logging
+if [ "$?" -ne 0 ]; then
+    echo -e "Failed"
+else
+    rm "$XDG_RUNTIME_DIR/penguindrop-key.send" "$XDG_RUNTIME_DIR/penguindrop-key.send.pub"
+fi
+STATUS=$(curl -s -X POST "http://${TARGET}/close")
+if [ "$?" -ne 0 ]; then
+    echo -e "Failed"
+    exit 1
+fi
+ERRORS=$(echo "$STATUS" | grep "\"error\"")
+if [ "$?" -eq 0 ]; then
+    echo -e "Failed"
+    echo "Error: $(python3 -c "import json; print(json.loads('${ERRORS}')['error'])")" >&2
+    exit 1
+fi
+echo -e "Complete"
